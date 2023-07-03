@@ -1,6 +1,34 @@
 from datetime import datetime
 import os
 import random 
+def rm(arg=None):
+  clear()
+  if arg==None:
+    ans=In("do you want to remove a list? (yes/no) \nans: ",["yes","no"])
+  else:
+    ans="yes"
+  while ans=="yes":
+   clear()
+   if arg==None:
+     text=show("groups")
+     collection=opentolist("groups")
+     choice=int(In(text+"enter the choice:\n",[str(i) for i in range(1,len(collection)+1)]))
+     name=collection [choice-1]
+     collection.remove(collection [choice-1])
+     command='rm '+name+'.txt'
+     os.system(command)
+     command='rm groups.txt'
+     os.system(command)
+     for name in collection:
+       add(name,"groups")
+     print(show("groups"))
+     ans=In("do you want to do it again? (yes/no) \nans: ",["yes","no"])
+   else:
+     name=arg
+     command='rm '+name+'.txt'
+     os.system(command)
+     ans="no"
+   
 def clear():
 	os.system('cls' if os.name=='nt' else 'clear')
 def In(text="please, enter:",valid=None):# check if the entered value is within the valid values
@@ -84,14 +112,11 @@ def groups():#opens file called groups contains groups we created and asks to pi
     collection=content.split(',')
     collection.remove("")
     index=1
-    text=""
-    for name in collection:
-      text+=f"({index}) {name}.\n"
-      index+=1
+    text=show("groups")
     choice=int(In(text+"please, enter your choice:\n", [str(i)for i in range (1,len(collection)+1)]))
     return collection[choice-1]
   except:#if there are no groups tell me and return a value to check upon it
-    print("there are no groups\nadd groups through option add and then come back.")
+    print("there are no groups\nadd groups through option new and then come back.")
     return 0
 def show(arg=None):#opens file and show its content
   clear()
@@ -117,7 +142,7 @@ def show(arg=None):#opens file and show its content
       index=1
       text=""
       for name in collection:
-        text+=f"({index}) {name}.\n"
+        text+=f"({index}) {name}.\n\n"
         index+=1
       return text#return contents in certain style 
     except:#if file is empty or not there
@@ -137,15 +162,11 @@ def replace():#replaces a single value at a time
     clear()
     text=show(group)#show choices
     try:
-      with open(group+'.txt', 'r+') as file:
-        content = file.read()
-        file.truncate(0)
-        file.close()
-      collection=content.split(',')
-      collection.remove("")
+      collection=opentolist(group)
       choice=int(In(text+"enter the choice:\n",[str(i) for i in range(1,len(collection)+1)]))
       exchange=input("enter the replacement:\n")
       collection [choice-1]=exchange
+      rm(group)
       for text in collection:
         if text==',':
           continue 
@@ -169,13 +190,10 @@ def delete (arg=None):#delete items from files
       group=arg
     text=show(group)
     try:
-      with open(group+'.txt', 'r+') as file:
-        content = file.read()
-        file.truncate(0)#delete file conrents
-      collection=content.split(',')
-      collection.remove("")
+      collection=opentolist(group)
       choice=int(In(text+"please enter your choice:\n",[str(i) for i in range(1,len(collection)+1)]))
       collection.remove(collection[choice-1])
+      rm(group)
       for text in collection:
         if text==',':
           continue 
@@ -183,11 +201,11 @@ def delete (arg=None):#delete items from files
       ans=In("do you want to delete another item? (yes/no) \nans: ",["yes","no"])
       if ans=="no":
         return 1
-      return 0
     except:
       print("there is no such file.")
       return 0
-def addcontent(arg=None):#used to add content to certain groups.
+  return 0
+def addcontent(arg=None,star=None):#used to add content to certain groups.
   clear()
   if arg==None:
     ans=In("do you want to add content? (yes/no)\nans: ",["yes","no"])
@@ -201,9 +219,48 @@ def addcontent(arg=None):#used to add content to certain groups.
     group=arg
   while ans=="yes":
     clear()
+    name=""
     if group=="dates":
       return 0
-    name=input("enter the name:\n")
+    if arg==None or arg=="groups":
+      name+=input("enter the name:\n")
+    elif arg=="videos":
+      collection=opentolist("stars")
+      if star==None:
+        star=input("please enter star's name: ")
+        result=search("stars",star)
+        if result==1:
+          add(star,'stars')
+        else:
+          choice=int(In(result[-1]+"please,enter your choice:",[str(i) for i in result[:-1]]))
+          star=collection [choice-1]
+      clear()
+      reply=In("is there another stars?(yes/no)\nans: ",["yes","no"])
+      video=star+" "
+      while reply=="yes":
+        clear()
+        name=input("please enter star's name: ")
+        result=search("stars",name)
+        if result==1:
+          add(name,"stars")
+          collection=opentolist("stars")
+          video+=collection[-1]+" "
+        else:
+          choice=int(In(result[-1]+"please,enter your choice:",[str(i) for i in result[:-1]]))
+          clear()
+          video+=collection[choice-1]+" "
+        reply=In("is there another stars?(yes/no)\nans: ",["yes","no"])
+      clear()
+      reply=In("does the video has a name?(yes/no)\nans: ",["yes","no"])
+      clear()
+      if reply=="yes":
+        video_name=input("please, enter video's name: ")
+        video+=f"[{video_name}] "
+        clear()
+      video+=input("please, enter duration: ")
+      clear()
+      name=video
+      input("the inputted video: "+name+"\npress enter to continue.")
     add(name,group)
     clear()
     ans=In("do you want to edit input submitted? (yes/no)\nans: ",["yes","no"])
@@ -216,21 +273,27 @@ def addcontent(arg=None):#used to add content to certain groups.
         input("press enter to continue.\n")
       clear()
     ans=In("do you want to add another one? (yes/no) \nans: ",["yes","no"])
-    return ans
+    star=None
+  return ans
 def add_groups():#add groups that i create
   clear()
   ans=In("Do you want to add to new group? (yes/no)\nans: ",["yes","no"])
   while ans=="yes":
     clear()
     ans=addcontent("groups")
-def search():#used in content search
+def search(arg=None,name=None):#used in content search
   clear()
-  ans=In("do you want to search for a name ? (yes/no) \nans: ",["yes","no"])
-  if ans=="yes":
+  if arg==None:
+    ans=In("do you want to search for a name ? (yes/no) \nans: ",["yes","no"])
+  else:
+    ans="yes"
+  if ans=="yes" and arg==None:
     group =groups()
     if group==0:#if no groups terminate
       return 0
     clear()
+  elif arg!=None and ans=="yes":
+    group=arg
   while ans=="yes":
     clear()
     existence=False#assumption of mission failure 
@@ -240,13 +303,25 @@ def search():#used in content search
         file.close()
       collection=content.split(',')
       collection.remove("")
-      name=input("please enter the name:\n")
+      found=[]
+      txt=""
+      if name==None:
+        name=input("please enter the name:\n")
       for item in collection:
         if name in item:
-          print(f"({collection.index(item)+1}) {item}.")
-          existence=True#mission succeeded
+          if arg==None:
+            print(f"({collection.index(item)+1}) {item}.")
+          elif arg=="stars":
+            txt+=f"({collection.index(item)+1}) {item}.\n"
+            found.append(collection.index(item)+1)
+            existence=True#mission succeeded
+      found.append(txt)
+      if arg=="stars" and existence:
+        return found
       if not existence:#if still failure tell me
         print("not existed!")
+        if arg!=None:
+          return 1
       ans=In("do you want to search again ? (yes/no) \nans: ",["yes","no"])
     except:
       print ("no file to search.\nhint: add content then come back again")
@@ -260,18 +335,18 @@ def duration ():#gets random video duration
   dur.append("open duration")
   cat=["relevance","duration","date"]
   date=["day","week","month","year","any"]
-  print(f"search by: {choosen(dur)} , {choosen(cat)}, {choosen(date)}.")
+  text=f"\nsearch by: {choosen(dur)}  {choosen(cat)} {choosen(date)}"
+  return text
 def get_video():#gets a random order to video 
   ans=In("do you have multi videos and want to pick one? (yes/no)\nans: ",["yes","no"])
   if ans=="yes":
     clear()
-    numberofvideos=int(In("please enter number of videos:\n",[str(i) for i in range(1,100)]))
+    numberofvideos=int(In("please enter number of videos:\n",[str(i) for i in range(1,1000)]))
     print(choosen([i for i in range (1,numberofvideos+1)]))
-  input("press enter to continue.\n")
 def get_from_groups():#random dates for groups and then get a video 
   clear()
   ans=In("do you want to get a random video from groups? (yes/no)\nans: ",["yes","no"])
-  if ans==yes:
+  if ans=="yes":
     numberofgroups=int(In("please enter number of groups:\n",[str(i) for i in range(1,100)]))
     while ans=="yes":
       clear()
@@ -284,19 +359,34 @@ def get_from_groups():#random dates for groups and then get a video
       clear()
       year=int(In("please enter a year: ",[str(i) for i in range(2011,datetime.now().year+1)]))
       clear()
+      counter=1
       while ans=="yes":
         clear()
         dates=days(day,month,year)
-        print(choosen(dates))
-        get_video()
+        print("date: ",choosen(dates))
+        input("press enter to continue. ")
         clear()
-        ans=In("do you want to repeat same? (yes/no)\nans: ",["yes","no"])
+        respond=In("did you find video to add? (yes/no)\nans: ",["yes","no"])
+        if respond=="yes":
+          clear()
+          addcontent("videos")
+          break
+        else:
+          counter+=1
+          if counter>3:
+            break
+          else:
+            continue
         clear()
       ans=In("do you want to repeat? (yes/no)\nans: ",["yes","no"])
     clear()
-def get():#picks randomly from groups
+def get(group=None):#picks randomly from groups
   clear()
-  ans=In("do you want to pick randomly? (yes/no) \nans: ",["yes","no"])
+  if group==None:
+    ans=In("do you want to pick randomly? (yes/no) \nans: ",["yes","no"])
+    clear()
+  else:
+    ans="yes"
   if ans=="yes":
       respond=In("Do you want to pick from specific group? (yes/no)\nans: ",["yes","no"])
       if respond=="yes":#if yes pick your group 
@@ -311,29 +401,26 @@ def get():#picks randomly from groups
       clear()
       if group=="dates":
         get_from_groups()
-        respond=In("did you find video to add? (yes/no)\nans: ",["yes","no"])
-        if respond=="yes":
-          addcontent("videos")
       else:
-        with open(group+'.txt', 'r') as file:
-          content = file.read()
-        collection=content.split(',')
-        collection.remove("")
+        collection=opentolist(group)
         choice=choosen(collection)
         if group=="groups":
           group=choice
           continue 
         print(choice)
         if group=="stars":
-          duration()
+          print(duration())
           get_video()
+          clear()
           respond=In("did you find video to add? (yes/no)\nans: ",["yes","no"])
           if respond=="yes":
-            addcontent("videos")
+            addcontent("videos",choice)
           clear()
       ans=In("do you want to get another one? (yes/no) \nans: ",["yes","no"])
-      if ans=="yes":
-        group="groups"
+      clear()
+    ans=In("do you want to random again? (yes/no) \nans: ",["yes","no"])
+    if ans=="yes":
+      get("groups")
   except:
     print ("add to your content first then come back")
 def base():
@@ -353,7 +440,17 @@ def size():
   return len(collection)
 def pickday ():
   clear()
-  ans=In("do you want to pick your day? (yes/no) \nans: ",["yes","no"])
+  collection=opentolist("today")
+  clear()
+  if collection==1:
+    ans=In("do you want to pick your day? (yes/no) \nans: ",["yes","no"])
+  elif collection [0]==str(datetime.today()).split(" ")[0]:
+    print(show("today"))
+    input("press enter to continue.\n")
+    ans="no"
+  else:
+    ans=In("do you want to pick your day? (yes/no) \nans: ",["yes","no"])
+    clearlist("today")
   try:
     while ans=="yes":
       clear()
@@ -362,8 +459,9 @@ def pickday ():
       file.close()
       collection=content.split(',')
       collection.remove("")
+      result=str(datetime.today()).split(" ")[0]+','
       for item in collection:
-        if item =="dates":
+        if item in ["dates","groups"]:
           continue
         if datetime.today().strftime("%A") not in ["Friday","Tuesday"] and item=="movies":
           continue 
@@ -372,13 +470,26 @@ def pickday ():
         file.close()
         array=content.split(',')
         array.remove("")
-        if item=="stars":
-          print(item+": "+choosen(array))
-          duration ()
-          print("\n")
+        if item=="videos":
+          selected=choosen(array)
+          minutes=selected.split(" ")[-1].split(":")
+          if len(minutes)<3:
+            if int(minutes[0])<40:
+              selected+="\n"+choosen(array)
+          result+=item+": "+selected+","
+        elif item=="stars":
+          result+=item+": "+choosen(array)+duration()+','
         else:
-          print(item+": "+choosen(array)+"\n")
-      ans=In("do you want to repeat? (yes/no) \nans: ",["yes","no"])
+          result+=item+": "+choosen(array)+","
+      result=result[:-1]
+      add(result,"today")
+      print(show("today"))
+      ans=In("do you accept result? (yes/no) \nans: ",["yes","no"])
+      if ans=="yes":
+        ans="no"
+      else:
+        ans="yes"
+        clearlist("today")
   except:
     print("you have no groups.")
 def opentolist(name):
@@ -390,7 +501,8 @@ def opentolist(name):
     collection.remove("")
     return collection
   except:
-    print("you have no groups.")
+    print(f"{name} is not existed.\n")
+    return 1
 def exchangeorder():
   clear()
   try:
@@ -420,3 +532,8 @@ def exchangeorder():
       ans=In("do you want to repeat? (yes/no) \nans: ",["yes","no"])
   except:
     print("you have no options.")
+def clearlist(group):
+  with open(group+'.txt', 'r+') as file:
+    content = file.read()
+    file.truncate(0)#delete file conrents
+  file.close()
