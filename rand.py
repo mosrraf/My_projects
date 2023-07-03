@@ -34,5 +34,7 @@ while ans=="yes":
     Tools.pickday()
   elif array[choice]=="Change order":
     Tools.exchangeorder()
+  elif array[choice]=="remove":
+    Tools.rm()
 Tools.clear()
   
